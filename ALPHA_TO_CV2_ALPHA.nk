@@ -1,0 +1,60 @@
+#! C:/Program Files/Nuke14.0v2/nuke-14.0.2.dll -nx
+version 14.0 v2
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="0" w="2557" h="1360" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1894" stretch="1"/>
+            <splitter orientation="2">
+                <split size="774"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="544"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+                <page id="uk.co.thefoundry.backgroundrenderview.1"/>
+                <page id="Scenegraph.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name C:/Users/WORKSTATION/Desktop/ALPHA_TO_CV2_ALPHA.nk
+ format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+NoOp {
+ inputs 0
+ name ALPHA_TO_CV2_ALPHA
+ xpos 7
+ ypos -8
+ addUserKnob {20 User}
+ addUserKnob {22 image l "CV2 IMAGE" T "import cv2\nimport numpy as np\nimport nuke \nimport os\n\n\ndef print_input_shape_and_save_as_png(image_path, output_path, counter):\n    # Read the image with alpha channel\n    alpha_mask = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)\n\n\n    # Convert the alpha mask to 8-bit format if it's not already\n    alpha_mask = (alpha_mask).astype(np.uint8)\n\n\n    # Save the alpha mask as a PNG image with sequential numbering\n    output_filename = os.path.join(output_path, f\"\{counter:04d\}.png\")\n    cv2.imwrite(output_filename, alpha_mask)\n\n\n    # Print input shape\n    print(f\"Input shape for \{os.path.basename(image_path)\}: \{alpha_mask.shape\}\")\n\n\n# Get the current Nuke node\nref_node = nuke.thisNode()\n\n\n# Get the input and output paths from the node parameters\nimage_dir = ref_node\['input'].getValue()\noutput_path = ref_node\['output'].getValue()\n\n\n# Initialize counter\ncounter = 1\n\n\n# Iterate over the image files in the directory\nfor filename in os.listdir(image_dir):\n    if filename.endswith('.png'):\n        # Construct the full path to the image\n        image_path = os.path.join(image_dir, filename)\n\n\n        # Print input shape and save it as a PNG with sequential numbering\n        print_input_shape_and_save_as_png(image_path, output_path, counter)\n\n\n        # Increment counter\n        counter += 1\n\n\n        # Break the loop if the counter reaches 10000\n        if counter > 9999:\n            print(\"Counter reached 9999. Exiting loop.\")\n            break\n\n" +STARTLINE}
+ addUserKnob {2 input}
+ input C:/Users/WORKSTATION/Desktop/2K_2ND_PASS/
+ addUserKnob {2 output}
+ output C:/Users/WORKSTATION/Desktop/2K_2ND_PASS_B/
+}
