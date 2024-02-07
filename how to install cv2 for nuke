@@ -1,0 +1,10 @@
+#step one: Nuke 14.0v2 numpy is included in cv2
+
+conda create -n nukesupport python==3.9 
+conda activate nukesupport 
+pip install opencv-python
+
+#step two: edit init.py in .nuke file 
+
+import sys
+sys.path.append("C:/Users/WORKSTATION/miniconda3/envs/nukesupport/Lib/site-packages")
