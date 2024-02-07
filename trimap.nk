@@ -1,0 +1,66 @@
+#! C:/Program Files/Nuke14.0v2/nuke-14.0.2.dll -nx
+version 14.0 v2
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="-1" y="1" w="2557" h="1360" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1894" stretch="1"/>
+            <splitter orientation="2">
+                <split size="774"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="544"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+                <page id="uk.co.thefoundry.backgroundrenderview.1"/>
+                <page id="Scenegraph.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name C:/Users/WORKSTATION/Desktop/trimap.nk
+ format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+NoOp {
+ inputs 0
+ name TRIMAP
+ xpos -4
+ ypos -34
+ addUserKnob {20 User l Trimap}
+ addUserKnob {22 trimap l TRIMAP T "from pkgutil import read_code\nimport cv2\nimport numpy as np\nimport os\nimport nuke\nimport shutil\n\nref_node = nuke.thisNode() # current node as position reference\n\nTrimapSize =  int(ref_node\['size'].getValue())\nTrimapIterations = int(ref_node\['iterations'].getValue())\ninput = ref_node\['input'].getValue()\noutput = ref_node\['output'].getValue()\n\ndef generate_trimap(mask, erode_kernel_size=TrimapSize, dilate_kernel_size=TrimapSize):\n    erode_kernel = np.ones((erode_kernel_size, erode_kernel_size), np.uint8)\n    dilate_kernel = np.ones((dilate_kernel_size, dilate_kernel_size), np.uint8)\n    eroded = cv2.erode(mask, erode_kernel, iterations=TrimapIterations)\n    dilated = cv2.dilate(mask, dilate_kernel, iterations=TrimapIterations)\n    trimap = np.zeros_like(mask)\n    trimap\[dilated == 255] = 128\n    trimap\[eroded == 255] = 255\n    return trimap\n\n# Path to the directory containing your image sequence\nsequence_path = input\n\n# Output directory to save trimap results\noutput_path = output\n\n# Ensure the output directory exists, create it if necessary\nos.makedirs(output_path, exist_ok=True)\n\ntry:\n    # Remove files in the output directory\n    for file_name in os.listdir(output_path):\n        file_path = os.path.join(output_path, file_name)\n        if os.path.isfile(file_path):\n            os.remove(file_path)\n\nexcept Exception as e:\n    print(f\"Error removing files: \{str(e)\}\")\n\n# Function to generate trimap and save result\ndef generate_and_save_trimap(image_path, output_path):\n    # Read the image\n    mask = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)\n    \n    # Generate trimap\n    result_trimap = generate_trimap(mask)\n    \n    # Save the result to a file in the output directory\n    output_filename = os.path.join(output_path, os.path.basename(image_path))\n    cv2.imwrite(output_filename, result_trimap)\n\n    return output_filename\n\n# Iterate over the image sequence\nfor filename in os.listdir(sequence_path):\n    if filename.endswith('.png'):\n        # Construct the full path to the image\n        image_path = os.path.join(sequence_path, filename)\n        \n        # Generate and save trimap for each image\n        result_file = generate_and_save_trimap(image_path, output_path)\n\n# Display a message in Nuke\n#nuke.message(\"Trimap generation completed!\")\n\n# Get frame range from user\nframes_input = nuke.getFramesAndViews('get range','1-100')\nif frames_input : # if get range not cancelled\n    frame_first = int(frames_input\[0].split('-')\[0])\n    frame_last = int(frames_input\[0].split('-')\[1])\n    start_frame_number = frame_first\n\n\nref_node = nuke.thisNode() # current node as position reference\n\n\ndef create_read_node(file_path):\n    global ref_node\n    file_path = output_path + \"%04d.png\"\n    isSequence = True\n    read_Node = nuke.createNode(\"Read\",inpanel=False)\n    read_Node.setXpos(ref_node.xpos())\n    read_Node.setYpos(ref_node.ypos() + ref_node.screenHeight() + 50)\n    read_Node\['file'].fromUserText(file_path)\n    read_Node\['first'].setValue(frame_first)\n    read_Node\['last'].setValue(frame_last)\n\n    return read_Node\n\ncreate_read_node(file_path)" +STARTLINE}
+ addUserKnob {26 ""}
+ addUserKnob {3 size l "Trimap size"}
+ size 12
+ addUserKnob {3 iterations l Iterations}
+ iterations 5
+ addUserKnob {26 ""}
+ addUserKnob {2 input l Input}
+ input C:/Users/WORKSTATION/Desktop/KM_RVM_Data/alpha/
+ addUserKnob {2 output l Output}
+ output C:/Users/WORKSTATION/Desktop/KM_RVM_Data/trimap/
+}
