@@ -1,0 +1,67 @@
+#! C:/Program Files/Nuke14.0v2/nuke-14.0.2.dll -nx
+version 14.0 v2
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="0" w="2557" h="1360" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1894" stretch="1"/>
+            <splitter orientation="2">
+                <split size="774"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="544"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+                <page id="uk.co.thefoundry.backgroundrenderview.1"/>
+                <page id="Scenegraph.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name C:/Users/WORKSTATION/Desktop/TRIMAP_NEW_240224.nk
+ format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+NoOp {
+ inputs 0
+ name TRIMAP2
+ selected true
+ xpos 82
+ ypos 36
+ addUserKnob {20 User l Trimap}
+ addUserKnob {22 trimap l TRIMAP T "from pkgutil import read_code\nimport cv2\nimport numpy as np\nimport os\nimport nuke\nimport shutil\n\n\nref_node = nuke.thisNode() # current node as position reference\n\n\nTrimapSize =  int(ref_node\['size'].getValue())\nTrimapIterations = int(ref_node\['iterations'].getValue())\ninput = ref_node\['input'].getValue()\noutput = ref_node\['output'].getValue()\n\n\ndef generate_adaptive_trimap(image_path, dilate_iterations=TrimapIterations, erode_iterations=TrimapIterations):\n    # Read the input RGB image\n    image = cv2.imread(image_path)\n\n\n    # Convert the image from BGR to RGB\n    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)\n\n\n    # Convert the image to grayscale\n    gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)\n\n\n    # Apply adaptive thresholding (Otsu's method)\n    _, trimap = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)\n\n\n    # Dilate and erode the trimap\n    dilated_trimap = cv2.dilate(trimap, None, iterations=TrimapIterations)\n    eroded_trimap = cv2.erode(trimap, None, iterations=TrimapIterations)\n\n\n    # Combine dilated and eroded trimaps\n    final_trimap = cv2.addWeighted(dilated_trimap, 0.5, eroded_trimap, 0.5, 0)\n\n\n    return final_trimap\n\n\n# Path to the directory containing your image sequence\nsequence_path = input\n\n\n# Output directory to save trimap results\noutput_path = output\n\n\n# Ensure the output directory exists, create it if necessary\nos.makedirs(output_path, exist_ok=True)\n\n\ntry:\n    # Remove files in the output directory\n    for file_name in os.listdir(output_path):\n        file_path = os.path.join(output_path, file_name)\n        if os.path.isfile(file_path):\n            os.remove(file_path)\n\n\nexcept Exception as e:\n    print(f\"Error removing files: \{str(e)\}\")\n\n\n# Function to generate trimap and save result\ndef generate_and_save_trimap(image_path, output_path):\n    # Read the image\n    mask = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)\n    \n    # Generate trimap\n    result_trimap = generate_adaptive_trimap(image_path)\n    \n    # Save the result to a file in the output directory\n    output_filename = os.path.join(output_path, os.path.basename(image_path))\n    cv2.imwrite(output_filename, result_trimap)\n\n\n    return output_filename\n\n\n# Iterate over the image sequence\nfor filename in os.listdir(sequence_path):\n    if filename.endswith('.png'):\n        # Construct the full path to the image\n        image_path = os.path.join(sequence_path, filename)\n        \n        # Generate and save trimap for each image\n        result_file = generate_and_save_trimap(image_path, output_path)\n\n\n# Display a message in Nuke\n#nuke.message(\"Trimap generation completed!\")\n\n" +STARTLINE}
+ addUserKnob {26 ""}
+ addUserKnob {3 size l "Trimap size" +INVISIBLE}
+ size 10
+ addUserKnob {3 iterations l Iterations}
+ iterations 10
+ addUserKnob {26 ""}
+ addUserKnob {2 input l Input}
+ input C:/Users/WORKSTATION/Desktop/MASK_PREP003_NEW/
+ addUserKnob {2 output l Output}
+ output C:/Users/WORKSTATION/Desktop/MASK_PREP006_NEW/
+}
